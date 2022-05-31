@@ -1,6 +1,8 @@
 package com.example.EyeKeeper;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -37,6 +39,7 @@ public class BusInfoActivity extends AppCompatActivity {
 
     String nodeid = null;
     String citycode = null;
+    boolean infoExist = true;
 
     List<Bus> buses;
 
@@ -67,40 +70,54 @@ public class BusInfoActivity extends AppCompatActivity {
 
         try {
             busInfoThread.join();
-        }catch (InterruptedException e){
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        for(Bus b : buses){
-            Log.i("버스", b.getStr());
-            String[] businfo = b.getStr().split(", ");
-            infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]),Integer.parseInt(businfo[1]),businfo[2],businfo[3]));
-        }
-        listView.setAdapter(infoAdapter);
-
-        pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.SwipeRefreshLayout_businfo);
-        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                listView = findViewById(R.id.Businfo_list);
-                InfoAdapter infoAdapter = new InfoAdapter();
-                BusInfoThread busInfoThread = new BusInfoThread();
-                busInfoThread.start();
-
-                try {
-                    busInfoThread.join();
-                }catch (InterruptedException e){
-                    e.printStackTrace();
-                }
-                for(Bus b : buses){
-                    Log.i("버스", b.getStr());
-                    String[] businfo = b.getStr().split(", ");
-                    infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]),Integer.parseInt(businfo[1]),businfo[2],businfo[3]));
-                }
-                listView.setAdapter(infoAdapter);
-
-                pullToRefresh.setRefreshing(false);
+        if (infoExist == true) {
+            for (Bus b : buses) {
+                Log.i("버스", b.getStr());
+                String[] businfo = b.getStr().split(", ");
+                infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]), Integer.parseInt(businfo[1]), businfo[2], businfo[3]));
             }
-        });
+            listView.setAdapter(infoAdapter);
+
+            pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.SwipeRefreshLayout_businfo);
+            pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    listView = findViewById(R.id.Businfo_list);
+                    InfoAdapter infoAdapter = new InfoAdapter();
+                    BusInfoThread busInfoThread = new BusInfoThread();
+                    busInfoThread.start();
+
+                    try {
+                        busInfoThread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    for (Bus b : buses) {
+                        Log.i("버스", b.getStr());
+                        String[] businfo = b.getStr().split(", ");
+                        infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]), Integer.parseInt(businfo[1]), businfo[2], businfo[3]));
+                    }
+                    listView.setAdapter(infoAdapter);
+
+                    pullToRefresh.setRefreshing(false);
+                }
+            });
+        } else {
+            AlertDialog.Builder msg = new AlertDialog.Builder(BusInfoActivity.this)
+                    .setTitle("현재 도착예정인 버스가 없습니다.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+            AlertDialog msgDlg = msg.create();
+            msgDlg.show();
+        }
     }
 
     public class BusInfoThread extends Thread {
@@ -147,14 +164,13 @@ public class BusInfoActivity extends AppCompatActivity {
 
                 List<Bus> busList = new ArrayList<>();
 
-                //반환값 없는 경우 추가
-
                 if (totalCnt == 1) {
                     JSONObject jo = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item");
                     Bus bus = new Bus(jo.getInt("arrprevstationcnt"), jo.getInt("arrtime"), jo.getString("routeno"), jo.getString("vehicletp"));
                     busList.add(bus);
-                }
-                else {
+                } else if (totalCnt == 0) {
+                    infoExist = false;
+                } else {
                     JSONArray jsonArray = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONArray("item");
 
                     for (int i = 0; i < jsonArray.length(); i++) {
@@ -165,16 +181,14 @@ public class BusInfoActivity extends AppCompatActivity {
                         String routeno = jsonObject.getString("routeno");
                         String vehicletp = jsonObject.getString("vehicletp");
 
-                        arrtime/=60;
+                        arrtime /= 60;
 
                         busList.add(new Bus(arrprevstationcnt, arrtime, routeno, vehicletp));
                     }
-
                     buses = busList;
                 }
 
-
-                for (Bus bus : busList){
+                for (Bus bus : busList) {
                     Log.i("버스 정보", bus.getStr());
 
                 }
@@ -198,10 +212,22 @@ public class BusInfoActivity extends AppCompatActivity {
             this.vehicletp = vehicletp;
         }
 
-        public String getRouteno() { return routeno; }
-        public String getVehicletp() { return vehicletp; }
-        public int getArrtime() { return arrtime; }
-        public int getArrprevstationcnt() { return arrprevstationcnt; }
+        public String getRouteno() {
+            return routeno;
+        }
+
+        public String getVehicletp() {
+            return vehicletp;
+        }
+
+        public int getArrtime() {
+            return arrtime;
+        }
+
+        public int getArrprevstationcnt() {
+            return arrprevstationcnt;
+        }
+
         public String getStr() {
             return Integer.toString(arrprevstationcnt) + ", " + Integer.toString(arrtime) + ", " + routeno + ", " + vehicletp;
         }
@@ -264,10 +290,21 @@ public class BusInfoActivity extends AppCompatActivity {
             statcnt = findViewById(R.id.stationcnt);
         }
 
-        public void setRout(String rout) { route.setText(rout); }
-        public void setVeichle(String veicle) { vtp.setText(veicle); }
-        public void setArrt(int art) { arrt.setText("남은시간 : "+String.valueOf(art) + "분"); }
-        public void setStatcnt(int stacnt) { statcnt.setText("남은정거장 : "+String.valueOf(stacnt)); }
+        public void setRout(String rout) {
+            route.setText(rout);
+        }
+
+        public void setVeichle(String veicle) {
+            vtp.setText(veicle);
+        }
+
+        public void setArrt(int art) {
+            arrt.setText("남은시간 : " + String.valueOf(art) + "분");
+        }
+
+        public void setStatcnt(int stacnt) {
+            statcnt.setText("남은정거장 : " + String.valueOf(stacnt));
+        }
 
     }
 
