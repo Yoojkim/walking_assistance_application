@@ -73,7 +73,7 @@ public class BusInfoActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        if(infoExist == true){
+        if (infoExist == true) {
             for (Bus b : buses) {
                 Log.i("버스", b.getStr());
                 String[] businfo = b.getStr().split(", ");
@@ -105,7 +105,7 @@ public class BusInfoActivity extends AppCompatActivity {
                     pullToRefresh.setRefreshing(false);
                 }
             });
-        }else{
+        } else {
             AlertDialog.Builder msg = new AlertDialog.Builder(BusInfoActivity.this)
                     .setTitle("현재 도착예정인 버스가 없습니다.")
                     .setPositiveButton("확인", new DialogInterface.OnClickListener() {
@@ -163,8 +163,6 @@ public class BusInfoActivity extends AppCompatActivity {
                 Log.i("totalCnt", String.valueOf(totalCnt));
 
                 List<Bus> busList = new ArrayList<>();
-
-
 
                 if (totalCnt == 1) {
                     JSONObject jo = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item");
