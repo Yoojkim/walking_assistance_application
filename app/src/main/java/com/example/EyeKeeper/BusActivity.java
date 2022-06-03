@@ -1,6 +1,7 @@
 package com.example.EyeKeeper;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -55,6 +56,9 @@ public class BusActivity extends AppCompatActivity {
     SwipeRefreshLayout pullToRefresh;
     ListView listview;
 
+    //Location
+    Location location = null;
+
     //GPS
     private double longitude;
     private double latitude;
@@ -65,7 +69,7 @@ public class BusActivity extends AppCompatActivity {
 
     // 초기 gps와 버스 정류장 정보 알려주기
     protected void onResume() {
-        Log.i("onResume","실행");
+        Log.i("onResume", "실행");
 
         super.onResume();
         setContentView(R.layout.activity_bus);
@@ -75,7 +79,7 @@ public class BusActivity extends AppCompatActivity {
         Myadapter adapter = new Myadapter();
 
         getBusstopinfo();
-        Log.i("getBusstopinfo","종료");
+        Log.i("getBusstopinfo", "종료");
 
         for (BusStop bs : busStops) {
             Log.i("busStop", bs.getStr());
@@ -83,12 +87,12 @@ public class BusActivity extends AppCompatActivity {
             adapter.addItem(new BusStop(info[1], info[2]));
         }
         listview.setAdapter(adapter);
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView parent, View v, int position, long id){
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
                 Intent busInfoIntent = new Intent(BusActivity.this, BusInfoActivity.class);
-                busInfoIntent.putExtra("citycode",busStops.get(position).citycode);
-                busInfoIntent.putExtra("nodeid",busStops.get(position).nodeid);
+                busInfoIntent.putExtra("citycode", busStops.get(position).citycode);
+                busInfoIntent.putExtra("nodeid", busStops.get(position).nodeid);
                 startActivity(busInfoIntent);
             }
         });
@@ -124,7 +128,7 @@ public class BusActivity extends AppCompatActivity {
                     0);
         } else {
             Log.i("gps 사용 여부:", String.valueOf(lm.isProviderEnabled(LocationManager.GPS_PROVIDER)));
-            Location location = lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+            location = lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
 
             longitude = location.getLongitude();
             latitude = location.getLatitude();
@@ -138,7 +142,9 @@ public class BusActivity extends AppCompatActivity {
 
             try {
                 busStops = (List<BusStop>) future.get();
-                Log.i("future","future.get() 완료");
+                Log.i("future", "future.get() 완료");
+
+
 
                 for (BusStop bs : busStops) {
                     Log.i("busStop", bs.getStr());
@@ -151,31 +157,54 @@ public class BusActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-        Log.i("getBusStopInfo","busstopinfo() 완료-return 전");
+        Log.i("getBusStopInfo", "busstopinfo() 완료-return 전");
         return busStops;
     }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.i("onCreate","실행");
+        Log.i("onCreate", "실행");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bus);
 
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-            Log.i("Loc","checkselfpermission");
+            Log.i("Loc", "checkselfpermission");
+            //권한 받을 때까지 무한 대기(코드 작성) -> 여기서 process kill됨 그냥 종료되고 iterator=null 들어감
             return;
         }
-        lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+        //lm.getLstKnownLocation이 null 받아오지 않을 때까지 반복
+        while (lm.getLastKnownLocation(lm.NETWORK_PROVIDER) == null && lm.getLastKnownLocation(lm.GPS_PROVIDER) == null) {
+            Log.e("getLastKnownLocation","null");
+            Location networkLoc = lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+            Location gpsLoc = lm.getLastKnownLocation(lm.GPS_PROVIDER);
+
+            if (gpsLoc != null) {
+                location = gpsLoc;
+                break;
+            }
+
+            if (networkLoc != null) {
+                location = networkLoc;
+                break;
+            }
+        }
+
+        Log.e("getLastKnownLocation","null 끝");
+
+        setLoc();
+    }
+
+    private void setLoc() {
+        @SuppressLint("MissingPermission") Location networkLoc = lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+        @SuppressLint("MissingPermission") Location gpsLoc= lm.getLastKnownLocation(lm.GPS_PROVIDER);
+
+        if(gpsLoc!=null)
+            location = gpsLoc;
+
+        if(networkLoc!=null)
+            location=networkLoc;
     }
 
     //api 이용
@@ -189,14 +218,12 @@ public class BusActivity extends AppCompatActivity {
             urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호*/
             urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + URLEncoder.encode("5", "UTF-8")); /*한 페이지 결과 수*/
             urlBuilder.append("&" + URLEncoder.encode("_type","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*데이터 타입(xml, json)*/
-
-            /*
             urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode(Double.toString(latitude), "UTF-8"));
             urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode(Double.toString(longitude), "UTF-8"));
-            */
 
-           urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode("37.5557965", "UTF-8"));
-           urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode("126.9723378", "UTF-8"));
+
+           //urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode("37.5557965", "UTF-8"));
+           //urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode("126.9723378", "UTF-8"));
 
 
             URL url = new URL(urlBuilder.toString());
@@ -224,12 +251,30 @@ public class BusActivity extends AppCompatActivity {
 
             Log.e("BUS_API_TEST",data);
 
+            //data-> html 코드 반환시 대처
+            //현재 네트워크가 정상적이지 않다는 popup 출력
+            for(int i=0;i<data.length();i++){
+                if(data.charAt(i)=='<'){
+                    //팝업 출력
+                    return new ArrayList<BusStop>(){{
+                        add(new BusStop("xss","xss","xss","xss"));
+                    }};
+                }
+            }
+            /*
+            * 현재 thread 안에서 < 발견 후 return을 다르게 해줘야 할 수도... 아님 null을 return 하고 null에 대한 처리를 하는 것도 나쁘지 x
+            * */
+
+
             //json Parsing (refactoring 필요)
             JSONObject jsonObject=new JSONObject(data);
             int totalCnt=jsonObject.getJSONObject("response").getJSONObject("body").getInt("totalCount");
             Log.i("totalCnt", String.valueOf(totalCnt));
 
+            if(totalCnt==0) return null;
+
             List<BusStop> busStopList=new ArrayList<>();
+            //여기에도 동일하게 totalCnt==0 코드 작성
             if(totalCnt==1) {
                 JSONObject jo = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item");
                 BusStop bs=new BusStop(jo.getString("nodeid"),jo.getString("nodenm"),jo.getString("nodeno"),jo.getString("citycode"));
