@@ -41,7 +41,7 @@ public class BusInfoActivity extends AppCompatActivity {
     String citycode = null;
     boolean infoExist = true;
 
-    List<Bus> buses;
+    List<Bus> buses=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +62,6 @@ public class BusInfoActivity extends AppCompatActivity {
 
         Log.i("BusInfoActivity", nodeid + ", " + citycode);
 
-        //nodeid="DJB8001793"; citycode="25";
 
         //http 통신
         BusInfoThread busInfoThread = new BusInfoThread();
@@ -106,12 +105,15 @@ public class BusInfoActivity extends AppCompatActivity {
                 }
             });
         } else {
+            //if문으로 xss, 0의 경우 나눠서 처리
+
             AlertDialog.Builder msg = new AlertDialog.Builder(BusInfoActivity.this)
                     .setTitle("현재 도착예정인 버스가 없습니다.")
                     .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                            //메뉴말고 BusActivity로 가도록 변경
+                            Intent intent = new Intent(getApplicationContext(), BusActivity.class);
                             startActivity(intent);
                         }
                     });
@@ -121,7 +123,6 @@ public class BusInfoActivity extends AppCompatActivity {
     }
 
     public class BusInfoThread extends Thread {
-
         @Override
         public void run() {
             if (nodeid == null) {
@@ -164,12 +165,21 @@ public class BusInfoActivity extends AppCompatActivity {
 
                 List<Bus> busList = new ArrayList<>();
 
+                //xss 공격 처리
+                for (int i = 0; i < data.length(); i++) {
+                    if (data.charAt(i) == '<') {
+                        infoExist = false;
+                        //busList.add ("xss","xss" ... )
+                    }
+                }
+
                 if (totalCnt == 1) {
                     JSONObject jo = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item");
                     Bus bus = new Bus(jo.getInt("arrprevstationcnt"), jo.getInt("arrtime"), jo.getString("routeno"), jo.getString("vehicletp"));
                     busList.add(bus);
                 } else if (totalCnt == 0) {
                     infoExist = false;
+                    //busList.add ("0","0" ... )
                 } else {
                     JSONArray jsonArray = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONArray("item");
 
@@ -185,13 +195,9 @@ public class BusInfoActivity extends AppCompatActivity {
 
                         busList.add(new Bus(arrprevstationcnt, arrtime, routeno, vehicletp));
                     }
-                    buses = busList;
                 }
 
-                for (Bus bus : busList) {
-                    Log.i("버스 정보", bus.getStr());
-
-                }
+                buses = busList; //totalCnt==0인 경우 빈 arrayList 들어가서 상관 x
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -215,19 +221,15 @@ public class BusInfoActivity extends AppCompatActivity {
         public String getRouteno() {
             return routeno;
         }
-
         public String getVehicletp() {
             return vehicletp;
         }
-
         public int getArrtime() {
             return arrtime;
         }
-
         public int getArrprevstationcnt() {
             return arrprevstationcnt;
         }
-
         public String getStr() {
             return Integer.toString(arrprevstationcnt) + ", " + Integer.toString(arrtime) + ", " + routeno + ", " + vehicletp;
         }
@@ -235,23 +237,18 @@ public class BusInfoActivity extends AppCompatActivity {
 
     class InfoAdapter extends BaseAdapter {
         private ArrayList<Bus> info = new ArrayList<>();
-
         public void addItem(Bus buses) {
             info.add(buses);
         }
-
         public int getCount() {
             return info.size();
         }
-
         public Object getItem(int position) {
             return info.get(position);
         }
-
         public long getItemId(int position) {
             return position;
         }
-
         public View getView(int position, View view, ViewGroup viewGroup) {
             BusInfoView v = new BusInfoView(getApplicationContext());
 

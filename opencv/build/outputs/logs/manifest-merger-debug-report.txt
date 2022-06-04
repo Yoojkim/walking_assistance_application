@@ -1,33 +1,33 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:2:1-9:12
+ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:2:1-9:12
+INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:2:1-9:12
+INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:2:1-9:12
 	package
-		ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:3:7-27
-		INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml
-		INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml
+		ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:3:7-27
+		INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml
+		INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml
 	android:versionName
-		ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:5:7-34
+		ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:5:7-34
 	xmlns:android
-		ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:2:11-69
+		ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:2:11-69
 	android:versionCode
-		ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:4:7-33
+		ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:4:7-33
 uses-sdk
-ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:5-74
-INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:5-74
-INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:5-74
-INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:5-74
-INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:5-74
+ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:5-74
+INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:5-74
+INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:5-74
+INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:5-74
+INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:5-74
 	android:targetSdkVersion
-		ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:42-71
-		INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml
-		INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml
+		ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:42-71
+		INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml
+		INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml
 	android:minSdkVersion
-		ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:15-41
-		INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml
-		INJECTED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml
+		ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:15-41
+		INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml
+		INJECTED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml
 uses-permission#android.permission.CAMERA
-ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:8:5-65
+ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:8:5-65
 	android:name
-		ADDED from D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:8:22-62
+		ADDED from D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:8:22-62

@@ -5,14 +5,14 @@
 5    android:versionName="3.4.5" >
 6
 7    <uses-sdk
-7-->D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:5-74
+7-->D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:5-74
 8        android:minSdkVersion="21"
-8-->D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:15-41
+8-->D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:15-41
 9        android:targetSdkVersion="32" />
-9-->D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:7:42-71
+9-->D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:7:42-71
 10
 11    <uses-permission android:name="android.permission.CAMERA" />
-11-->D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:8:5-65
-11-->D:\GraduationProj\EyeKeeper_ver5\gps_ver1\opencv\java\AndroidManifest.xml:8:22-62
+11-->D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:8:5-65
+11-->D:\GraduationProj\EyeKeeper\opencv\java\AndroidManifest.xml:8:22-62
 12
 13</manifest>

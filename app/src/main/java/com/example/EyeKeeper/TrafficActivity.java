@@ -1,8 +1,11 @@
 package com.example.EyeKeeper;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -309,6 +312,12 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
     @Override
     protected void onResume() {
         super.onResume();
+
+        //권한 코드
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            //현재 권한이 없다는 popup 후 menu로 돌아가도록 intent 넣어주세요.
+        }
 
         if (!OpenCVLoader.initDebug()){
             Toast.makeText(getApplicationContext(),"openCV 환경이 구성되지 않았습니다.", Toast.LENGTH_SHORT).show();
