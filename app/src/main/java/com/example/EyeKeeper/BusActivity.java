@@ -1,7 +1,10 @@
 package com.example.EyeKeeper;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -55,127 +58,168 @@ public class BusActivity extends AppCompatActivity {
     SwipeRefreshLayout pullToRefresh;
     ListView listview;
 
+    //Location
+    Location location = null;
+
+    AlertDialog msgDlg;
     //GPS
     private double longitude;
     private double latitude;
 
     List<BusStop> busStops;
 
-    ArrayList<String> saveinfo;
-
     // 초기 gps와 버스 정류장 정보 알려주기
     protected void onResume() {
-        Log.i("onResume","실행");
-
         super.onResume();
         setContentView(R.layout.activity_bus);
 
-        listview = findViewById(R.id.busstop);
-
-        Myadapter adapter = new Myadapter();
-
-        getBusstopinfo();
-        Log.i("getBusstopinfo","종료");
-
-        for (BusStop bs : busStops) {
-            Log.i("busStop", bs.getStr());
-            String[] info = bs.getStr().split(",");
-            adapter.addItem(new BusStop(info[1], info[2]));
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            //현재 권한이 없다는 popup 후 menu로 돌아가도록 intent 넣어주세요.
+            AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
+                    .setTitle("권한을 허락해주세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+            msgDlg = msg.create();
+            msgDlg.show();
         }
-        listview.setAdapter(adapter);
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView parent, View v, int position, long id){
-                Intent busInfoIntent = new Intent(BusActivity.this, BusInfoActivity.class);
-                busInfoIntent.putExtra("citycode",busStops.get(position).citycode);
-                busInfoIntent.putExtra("nodeid",busStops.get(position).nodeid);
-                startActivity(busInfoIntent);
-            }
-        });
+        else{
+            listview = findViewById(R.id.busstop);
 
-        pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.BusStopName);
-        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                listview = findViewById(R.id.busstop);
+            Myadapter adapter = new Myadapter();
 
-                Myadapter adapter = new Myadapter();
-                Log.e("start", "시작");
-                getBusstopinfo();
+            busStops=getBusstopinfo();
 
-                for (BusStop bs : busStops) {
-                    Log.i("busStop", bs.getStr());
-                    String[] info = bs.getStr().split(",");
+            for (BusStop bs : busStops) {
+                Log.i("busStop", bs.getStr());
+                String[] info = bs.getStr().split(",");
+                if(info[0] == "0"){
+                    AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
+                            .setTitle("현재 근처에 버스정류장이 없습니다.")
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+                    msgDlg = msg.create();
+                    msgDlg.show();
+                }else if(info[0] == "xss" || busStops == null){
+                    AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
+                            .setTitle("현재 네트워크가 불안정합니다. 잠시후 접속해주세요.")
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+                    msgDlg = msg.create();
+                    msgDlg.show();
+                }else{
                     adapter.addItem(new BusStop(info[1], info[2]));
                 }
-                listview.setAdapter(adapter);
-
-
-                pullToRefresh.setRefreshing(false);
             }
-        });
+            listview.setAdapter(adapter);
+            listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView parent, View v, int position, long id) {
+                    Intent busInfoIntent = new Intent(BusActivity.this, BusInfoActivity.class);
+                    busInfoIntent.putExtra("citycode", busStops.get(position).citycode);
+                    busInfoIntent.putExtra("nodeid", busStops.get(position).nodeid);
+                    startActivity(busInfoIntent);
+                }
+            });
+
+            pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.SwipeRefreshLayout_busstop);
+            pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    listview = findViewById(R.id.busstop);
+
+                    Myadapter adapter = new Myadapter();
+                    getBusstopinfo();
+
+                    for (BusStop bs : busStops) {
+                        Log.i("busStop", bs.getStr());
+                        String[] info = bs.getStr().split(",");
+                        adapter.addItem(new BusStop(info[1], info[2]));
+                    }
+                    listview.setAdapter(adapter);
+
+                    pullToRefresh.setRefreshing(false);
+                }
+            });
+        }
+
     }
 
 
     public List<BusStop> getBusstopinfo() {
-        if (Build.VERSION.SDK_INT >= 23 &&
-                ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(BusActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    0);
-        } else {
-            Log.i("gps 사용 여부:", String.valueOf(lm.isProviderEnabled(LocationManager.GPS_PROVIDER)));
-            Location location = lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+        setLoc();
+        longitude = location.getLongitude();
+        latitude = location.getLatitude();
+        Log.d("gps", "경도: " + longitude + ", 위도: " + latitude);
 
-            longitude = location.getLongitude();
-            latitude = location.getLatitude();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-            Log.d("gps", "경도: " + longitude + ", 위도: " + latitude);
+        BusStopThread busStopThread = new BusStopThread();
+        Future<List<BusStop>> future = executorService.submit(busStopThread);
 
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-            BusStopThread busStopThread = new BusStopThread();
-            Future<List<BusStop>> future = executorService.submit(busStopThread);
-
-            try {
-                busStops = (List<BusStop>) future.get();
-                Log.i("future","future.get() 완료");
-
-                for (BusStop bs : busStops) {
-                    Log.i("busStop", bs.getStr());
-
-                }
-
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        try {
+            return (List<BusStop>) future.get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        Log.i("getBusStopInfo","busstopinfo() 완료-return 전");
-        return busStops;
+
+        return null;
     }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.i("onCreate","실행");
+        Log.i("onCreate", "실행");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bus);
 
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-            Log.i("Loc","checkselfpermission");
+            Log.i("Loc", "not permission");
             return;
         }
-        lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+
+        //lm.getLstKnownLocation이 null 받아오지 않을 때까지 반복
+        while (lm.getLastKnownLocation(lm.NETWORK_PROVIDER) == null && lm.getLastKnownLocation(lm.GPS_PROVIDER) == null) {
+            Log.e("getLastKnownLocation","null");
+            Location networkLoc = lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+            Location gpsLoc = lm.getLastKnownLocation(lm.GPS_PROVIDER);
+
+            if (gpsLoc != null)
+                break;
+
+            if (networkLoc != null)
+                break;
+        }
+        
+        setLoc();
+    }
+
+    private void setLoc() {
+        @SuppressLint("MissingPermission") Location networkLoc = lm.getLastKnownLocation(lm.NETWORK_PROVIDER);
+        @SuppressLint("MissingPermission") Location gpsLoc= lm.getLastKnownLocation(lm.GPS_PROVIDER);
+
+        if(gpsLoc!=null)
+            location = gpsLoc;
+
+        if(networkLoc!=null)
+            location=networkLoc;
     }
 
     //api 이용
@@ -185,19 +229,13 @@ public class BusActivity extends AppCompatActivity {
         public List<BusStop> call() throws Exception {
             StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList");
 
+            //페이지 문제
             urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") +"="+ BuildConfig.BUSSTOP_API_KEY); /*Service Key*/
             urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호*/
             urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + URLEncoder.encode("5", "UTF-8")); /*한 페이지 결과 수*/
             urlBuilder.append("&" + URLEncoder.encode("_type","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*데이터 타입(xml, json)*/
-
-            /*
             urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode(Double.toString(latitude), "UTF-8"));
             urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode(Double.toString(longitude), "UTF-8"));
-            */
-
-           urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode("37.5557965", "UTF-8"));
-           urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode("126.9723378", "UTF-8"));
-
 
             URL url = new URL(urlBuilder.toString());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -205,7 +243,7 @@ public class BusActivity extends AppCompatActivity {
             conn.setRequestProperty("Content-type", "application/json");
 
             BufferedReader rd;
-            Log.e("error code:", String.valueOf(conn.getResponseCode()));
+            Log.e("Response code:", String.valueOf(conn.getResponseCode()));
 
             if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
                 rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -224,12 +262,30 @@ public class BusActivity extends AppCompatActivity {
 
             Log.e("BUS_API_TEST",data);
 
+            //data-> html 코드 반환시 대처
+            //현재 네트워크가 정상적이지 않다는 popup 출력
+            for(int i=0;i<data.length();i++){
+                if(data.charAt(i)=='<'){
+                    //팝업 출력
+                    return new ArrayList<BusStop>(){{
+                        add(new BusStop("xss","xss","xss","xss"));
+                    }};
+                }
+            }
+
             //json Parsing (refactoring 필요)
             JSONObject jsonObject=new JSONObject(data);
             int totalCnt=jsonObject.getJSONObject("response").getJSONObject("body").getInt("totalCount");
             Log.i("totalCnt", String.valueOf(totalCnt));
 
+            if(totalCnt==0) {
+                return new ArrayList<BusStop>(){{
+                    add(new BusStop("0","0","0","0"));
+                }};
+            }
+
             List<BusStop> busStopList=new ArrayList<>();
+            //여기에도 동일하게 totalCnt==0 코드 작성
             if(totalCnt==1) {
                 JSONObject jo = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item");
                 BusStop bs=new BusStop(jo.getString("nodeid"),jo.getString("nodenm"),jo.getString("nodeno"),jo.getString("citycode"));
@@ -275,21 +331,8 @@ public class BusActivity extends AppCompatActivity {
             this.nodenm = nodenm;
             this.nodeno = nodeno;
         }
-        public BusStop(){}
-
         public String getNodenm(){ return nodenm; }
-
         public String getNodeno(){ return nodeno; }
-
-        public void setNodenm(String nodenm){
-            this.nodenm = nodenm;
-        }
-
-        public void setNodeno(String nodeno){
-            this.nodeno = nodeno;
-        }
-
-
         public String getStr(){ return nodeid+", "+nodenm+", "+nodeno+", "+citycode; }
     }
 
@@ -327,6 +370,7 @@ public class BusActivity extends AppCompatActivity {
         }
 
     }
+
     public class BusStopView extends LinearLayout{
         TextView textView, textView2;
 
@@ -351,9 +395,16 @@ public class BusActivity extends AppCompatActivity {
 
         public void setNo(String nodeno){ textView.setText(nodeno); }
         public void setNm(String nodenm){ textView2.setText(nodenm); }
-
     }
 
+    public void onDestroy(){
+        super.onDestroy();
+        if(msgDlg!=null)
+        {
+            msgDlg.dismiss();
+            msgDlg=null;
+        }
+    }
 
 
 }

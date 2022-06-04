@@ -3,8 +3,11 @@ package com.example.EyeKeeper;
 import static android.os.SystemClock.sleep;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
@@ -330,11 +333,16 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
     protected void onResume() {
         super.onResume();
 
-        if (!OpenCVLoader.initDebug()){
-            Toast.makeText(getApplicationContext(),"openCV 환경이 구성되지 않았습니다.", Toast.LENGTH_SHORT).show();
+        //권한 코드
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            //현재 권한이 없다는 popup 후 menu로 돌아가도록 intent 넣어주세요.
         }
 
-        else
+        //popup 따로
+        if (!OpenCVLoader.initDebug()){
+            Toast.makeText(getApplicationContext(),"openCV 환경이 구성되지 않았습니다.", Toast.LENGTH_SHORT).show();
+        } else
         {
             baseLoaderCallback.onManagerConnected(baseLoaderCallback.SUCCESS);
             timerHandler.sendEmptyMessage(MESSAGE_TIMER_START);
