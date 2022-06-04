@@ -15,7 +15,7 @@
 
         <TextView
             android:id="@+id/routeno"
-            android:layout_width="230dp"
+            android:layout_width="257dp"
             android:layout_height="70dp"
             android:layout_gravity="center"
             android:layout_weight="1"
@@ -24,7 +24,7 @@
             android:textSize="45dp" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
@@ -35,7 +35,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/gmarketsanslight"
                 android:text="남은정류장수"
-                android:textSize="45dp" />
+                android:textSize="40dp" />
 
             <TextView
                 android:id="@+id/vehicletp"
@@ -44,7 +44,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/gmarketsanslight"
                 android:text="버스종류"
-                android:textSize="45dp" />
+                android:textSize="40dp" />
 
             <TextView
                 android:id="@+id/arrtime"
@@ -53,7 +53,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/gmarketsanslight"
                 android:text="버스종류"
-                android:textSize="45dp" />
+                android:textSize="40dp" />
         </LinearLayout>
 
     </LinearLayout>

@@ -2,7 +2,9 @@ package com.example.EyeKeeper;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -59,6 +61,7 @@ public class BusActivity extends AppCompatActivity {
     //Location
     Location location = null;
 
+    AlertDialog msgDlg;
     //GPS
     private double longitude;
     private double latitude;
@@ -70,67 +73,90 @@ public class BusActivity extends AppCompatActivity {
         super.onResume();
         setContentView(R.layout.activity_bus);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             //현재 권한이 없다는 popup 후 menu로 돌아가도록 intent 넣어주세요.
+            AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
+                    .setTitle("권한을 허락해주세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+            msgDlg = msg.create();
+            msgDlg.show();
         }
+        else{
+            listview = findViewById(R.id.busstop);
 
-        listview = findViewById(R.id.busstop);
+            Myadapter adapter = new Myadapter();
 
-        Myadapter adapter = new Myadapter();
+            busStops=getBusstopinfo();
 
-        busStops=getBusstopinfo();
-
-        /*
-        busStops node String "0"인 경우
-        현재 근처의 버스정류장이 없습니다 라는 팝업 후, menu로 가도록 해주세요.
-         */
-
-        /*
-        맨 첫번째 node String "xss" 경우
-        현재 네트워크가 불안정하다는 팝업 후, menu로 가도록 해주세요.
-        */
-
-        /*
-        busStops = null인 경우
-        스레드 문제니까 그냥 현재 네트워크가 불안정하다고 하다는 팝업.
-         */
-
-        for (BusStop bs : busStops) {
-            Log.i("busStop", bs.getStr());
-            String[] info = bs.getStr().split(",");
-            adapter.addItem(new BusStop(info[1], info[2]));
-        }
-        listview.setAdapter(adapter);
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView parent, View v, int position, long id) {
-                Intent busInfoIntent = new Intent(BusActivity.this, BusInfoActivity.class);
-                busInfoIntent.putExtra("citycode", busStops.get(position).citycode);
-                busInfoIntent.putExtra("nodeid", busStops.get(position).nodeid);
-                startActivity(busInfoIntent);
-            }
-        });
-
-        pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.BusStopName);
-        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                listview = findViewById(R.id.busstop);
-
-                Myadapter adapter = new Myadapter();
-                getBusstopinfo();
-
-                for (BusStop bs : busStops) {
-                    Log.i("busStop", bs.getStr());
-                    String[] info = bs.getStr().split(",");
+            for (BusStop bs : busStops) {
+                Log.i("busStop", bs.getStr());
+                String[] info = bs.getStr().split(",");
+                if(info[0] == "0"){
+                    AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
+                            .setTitle("현재 근처에 버스정류장이 없습니다.")
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+                    msgDlg = msg.create();
+                    msgDlg.show();
+                }else if(info[0] == "xss" || busStops == null){
+                    AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
+                            .setTitle("현재 네트워크가 불안정합니다. 잠시후 접속해주세요.")
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+                    msgDlg = msg.create();
+                    msgDlg.show();
+                }else{
                     adapter.addItem(new BusStop(info[1], info[2]));
                 }
-                listview.setAdapter(adapter);
-
-
-                pullToRefresh.setRefreshing(false);
             }
-        });
+            listview.setAdapter(adapter);
+            listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView parent, View v, int position, long id) {
+                    Intent busInfoIntent = new Intent(BusActivity.this, BusInfoActivity.class);
+                    busInfoIntent.putExtra("citycode", busStops.get(position).citycode);
+                    busInfoIntent.putExtra("nodeid", busStops.get(position).nodeid);
+                    startActivity(busInfoIntent);
+                }
+            });
+
+            pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.SwipeRefreshLayout_busstop);
+            pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    listview = findViewById(R.id.busstop);
+
+                    Myadapter adapter = new Myadapter();
+                    getBusstopinfo();
+
+                    for (BusStop bs : busStops) {
+                        Log.i("busStop", bs.getStr());
+                        String[] info = bs.getStr().split(",");
+                        adapter.addItem(new BusStop(info[1], info[2]));
+                    }
+                    listview.setAdapter(adapter);
+
+                    pullToRefresh.setRefreshing(false);
+                }
+            });
+        }
+
     }
 
 
@@ -370,5 +396,15 @@ public class BusActivity extends AppCompatActivity {
         public void setNo(String nodeno){ textView.setText(nodeno); }
         public void setNm(String nodenm){ textView2.setText(nodenm); }
     }
+
+    public void onDestroy(){
+        super.onDestroy();
+        if(msgDlg!=null)
+        {
+            msgDlg.dismiss();
+            msgDlg=null;
+        }
+    }
+
 
 }
