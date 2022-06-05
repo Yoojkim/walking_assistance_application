@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.hardware.Camera;
@@ -66,6 +68,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
     Net tinyYolo;
 
     private static TextToSpeech tts;
+    AlertDialog msgDlg;
 
     CameraManager manager;
 
@@ -195,6 +198,8 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
         //m 단위로 변경
         int meter = distance / 100;
         int cm = distance % 100;
+
+
         String msg = "전방" + Integer.toString(meter) + "m" + Integer.toString(cm) + "cm에" + objectName + "가 있습니다";
         tts.speak(msg, TextToSpeech.QUEUE_FLUSH, null);
 
@@ -336,17 +341,39 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
         //권한 코드
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-            //현재 권한이 없다는 popup 후 menu로 돌아가도록 intent 넣어주세요.
+            AlertDialog.Builder msg = new AlertDialog.Builder(WalkingActivity.this)
+                    .setTitle("권한을 허락해주세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            onBackPressed();
+                        }
+                    });
+            msgDlg = msg.create();
+            msgDlg.show();
         }
 
         //popup 따로
         if (!OpenCVLoader.initDebug()){
-            Toast.makeText(getApplicationContext(),"openCV 환경이 구성되지 않았습니다.", Toast.LENGTH_SHORT).show();
+            AlertDialog.Builder msg = new AlertDialog.Builder(WalkingActivity.this)
+                    .setTitle("현재 네트워크가 불안정합니다. 잠시후 접속해주세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            onBackPressed();
+                        }
+                    });
+            msgDlg = msg.create();
+            msgDlg.show();
         } else
         {
             baseLoaderCallback.onManagerConnected(baseLoaderCallback.SUCCESS);
             timerHandler.sendEmptyMessage(MESSAGE_TIMER_START);
         }
+    }
+
+    public void onBackPressed(){
+        super.onBackPressed();
     }
 
     @Override
@@ -375,6 +402,12 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
             tts.stop();
             tts.shutdown();
             tts=null;
+        }
+
+        if(msgDlg!=null)
+        {
+            msgDlg.dismiss();
+            msgDlg=null;
         }
     }
 }
