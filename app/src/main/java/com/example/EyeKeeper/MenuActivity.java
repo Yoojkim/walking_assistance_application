@@ -25,6 +25,7 @@ public class MenuActivity extends AppCompatActivity {
     static final int PERMISSION_REQUEST = 0x0000001;
     private PermissionSupport permission;
     private TextToSpeech tts;
+    private long time = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,5 +72,17 @@ public class MenuActivity extends AppCompatActivity {
             permission.requestPermission();
         }
     }
+
+    // 두번 누르면 앱 종료
+    public void onBackPressed(){
+        //super.onBackPressed(); 뒤로가기 버튼 막기
+        if(System.currentTimeMillis() - time >= 2000){
+            time = System.currentTimeMillis();
+            Toast.makeText(getApplicationContext(),"한번 더 누르면 종료됩니다.",Toast.LENGTH_LONG).show();
+        }else if(System.currentTimeMillis() - time < 2000){
+            finishAffinity();
+        }
+    }
+
 
 }

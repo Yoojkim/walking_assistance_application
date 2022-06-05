@@ -4,7 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
@@ -48,7 +50,7 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
     private static final int TRAFFIC_START=100;
     private static final int TRAFFIC_STOP=-1;
 
-
+    AlertDialog msgDlg;
     CameraBridgeViewBase cameraBridgeViewBase;
     BaseLoaderCallback baseLoaderCallback;
     Net tinyYolo;
@@ -316,11 +318,29 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
         //권한 코드
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-            //현재 권한이 없다는 popup 후 menu로 돌아가도록 intent 넣어주세요.
+            AlertDialog.Builder msg = new AlertDialog.Builder(TrafficActivity.this)
+                    .setTitle("권한을 허락해주세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            onBackPressed();
+                        }
+                    });
+            msgDlg = msg.create();
+            msgDlg.show();
         }
 
         if (!OpenCVLoader.initDebug()){
-            Toast.makeText(getApplicationContext(),"openCV 환경이 구성되지 않았습니다.", Toast.LENGTH_SHORT).show();
+            AlertDialog.Builder msg = new AlertDialog.Builder(TrafficActivity.this)
+                    .setTitle("현재 네트워크가 불안정합니다. 잠시후 접속해주세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            onBackPressed();
+                        }
+                    });
+            msgDlg = msg.create();
+            msgDlg.show();
         }
 
         else
@@ -329,6 +349,11 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
             trafficHandler.sendEmptyMessage(TRAFFIC_START);
         }
     }
+
+    public void onBackPressed(){
+        super.onBackPressed();
+    }
+
 
     @Override
     protected void onPause() {

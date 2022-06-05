@@ -40,7 +40,6 @@ public class BusInfoActivity extends AppCompatActivity {
     String nodeid = null;
     String citycode = null;
     boolean infoExist = true;
-
     List<Bus> buses=null;
 
     @Override
@@ -62,7 +61,6 @@ public class BusInfoActivity extends AppCompatActivity {
 
         Log.i("BusInfoActivity", nodeid + ", " + citycode);
 
-
         //http 통신
         BusInfoThread busInfoThread = new BusInfoThread();
         busInfoThread.start();
@@ -76,7 +74,7 @@ public class BusInfoActivity extends AppCompatActivity {
             for (Bus b : buses) {
                 Log.i("버스", b.getStr());
                 String[] businfo = b.getStr().split(", ");
-                infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]), Integer.parseInt(businfo[1]), businfo[2], businfo[3]));
+                infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]), businfo[1], businfo[2], businfo[3]));
             }
             listView.setAdapter(infoAdapter);
 
@@ -97,7 +95,7 @@ public class BusInfoActivity extends AppCompatActivity {
                     for (Bus b : buses) {
                         Log.i("버스", b.getStr());
                         String[] businfo = b.getStr().split(", ");
-                        infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]), Integer.parseInt(businfo[1]), businfo[2], businfo[3]));
+                        infoAdapter.addItem(new Bus(Integer.parseInt(businfo[0]), businfo[1], businfo[2], businfo[3]));
                     }
                     listView.setAdapter(infoAdapter);
 
@@ -106,19 +104,36 @@ public class BusInfoActivity extends AppCompatActivity {
             });
         } else {
             //if문으로 xss, 0의 경우 나눠서 처리
-
-            AlertDialog.Builder msg = new AlertDialog.Builder(BusInfoActivity.this)
-                    .setTitle("현재 도착예정인 버스가 없습니다.")
-                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            //메뉴말고 BusActivity로 가도록 변경
-                            Intent intent = new Intent(getApplicationContext(), BusActivity.class);
-                            startActivity(intent);
-                        }
-                    });
-            AlertDialog msgDlg = msg.create();
-            msgDlg.show();
+            for (Bus b : buses) {
+                Log.i("버스", b.getStr());
+                String[] businfo = b.getStr().split(", ");
+                if("xss".equals(businfo[1])){
+                    AlertDialog.Builder msg = new AlertDialog.Builder(BusInfoActivity.this)
+                            .setTitle("현재 네트워크가 불안정합니다. 잠시후 접속해주세요.")
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    //메뉴말고 BusActivity로 가도록 변경
+                                   onBackPressed();
+                                }
+                            });
+                    AlertDialog msgDlg = msg.create();
+                    msgDlg.show();
+                }else if("0".equals(businfo[1])){
+                    Log.d("if 확인", "실행");
+                    AlertDialog.Builder msg = new AlertDialog.Builder(BusInfoActivity.this)
+                            .setTitle("현재 도착예정인 버스가 없습니다.")
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    //메뉴말고 BusActivity로 가도록 변경
+                                    onBackPressed();
+                                }
+                            });
+                    AlertDialog msgDlg = msg.create();
+                    msgDlg.show();
+                }
+            }
         }
     }
 
@@ -169,17 +184,17 @@ public class BusInfoActivity extends AppCompatActivity {
                 for (int i = 0; i < data.length(); i++) {
                     if (data.charAt(i) == '<') {
                         infoExist = false;
-                        //busList.add ("xss","xss" ... )
+                        busList.add(new Bus(0,"xss","xss", "xss"));
                     }
                 }
 
                 if (totalCnt == 1) {
                     JSONObject jo = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item");
-                    Bus bus = new Bus(jo.getInt("arrprevstationcnt"), jo.getInt("arrtime"), jo.getString("routeno"), jo.getString("vehicletp"));
+                    Bus bus = new Bus(jo.getInt("arrprevstationcnt"), jo.getString("arrtime"), jo.getString("routeno"), jo.getString("vehicletp"));
                     busList.add(bus);
                 } else if (totalCnt == 0) {
                     infoExist = false;
-                    //busList.add ("0","0" ... )
+                    busList.add(new Bus(0,"0","0","0"));
                 } else {
                     JSONArray jsonArray = jsonObject.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONArray("item");
 
@@ -187,11 +202,17 @@ public class BusInfoActivity extends AppCompatActivity {
                         jsonObject = jsonArray.getJSONObject(i);
 
                         int arrprevstationcnt = jsonObject.getInt("arrprevstationcnt");
-                        int arrtime = jsonObject.getInt("arrtime");
+                        String arrtime = jsonObject.getString("arrtime");
                         String routeno = jsonObject.getString("routeno");
                         String vehicletp = jsonObject.getString("vehicletp");
 
-                        arrtime /= 60;
+                        if(Integer.parseInt(arrtime) > 60){
+                            int time = Integer.parseInt(arrtime);
+                            time /= 60;
+                            arrtime = String.valueOf(time);
+                        }else{
+                            arrtime = "잠시후 도착";
+                        }
 
                         busList.add(new Bus(arrprevstationcnt, arrtime, routeno, vehicletp));
                     }
@@ -207,11 +228,11 @@ public class BusInfoActivity extends AppCompatActivity {
 
     public class Bus {
         int arrprevstationcnt;//남은 버스정류장 개수
-        int arrtime;//도착 예상시간(초)
+        String arrtime;//도착 예상시간(초)
         String routeno;//버스번호
         String vehicletp; //차량 종류(일반 차량 ... )
 
-        public Bus(int arrprevstationcnt, int arrtime, String routeno, String vehicletp) {
+        public Bus(int arrprevstationcnt, String arrtime, String routeno, String vehicletp) {
             this.arrprevstationcnt = arrprevstationcnt;
             this.arrtime = arrtime;
             this.routeno = routeno;
@@ -224,14 +245,12 @@ public class BusInfoActivity extends AppCompatActivity {
         public String getVehicletp() {
             return vehicletp;
         }
-        public int getArrtime() {
-            return arrtime;
-        }
+        public String getArrtime() { return arrtime; }
         public int getArrprevstationcnt() {
             return arrprevstationcnt;
         }
         public String getStr() {
-            return Integer.toString(arrprevstationcnt) + ", " + Integer.toString(arrtime) + ", " + routeno + ", " + vehicletp;
+            return Integer.toString(arrprevstationcnt) + ", " + arrtime + ", " + routeno + ", " + vehicletp;
         }
     }
 
@@ -295,8 +314,8 @@ public class BusInfoActivity extends AppCompatActivity {
             vtp.setText(veicle);
         }
 
-        public void setArrt(int art) {
-            arrt.setText("남은시간 : " + String.valueOf(art) + "분");
+        public void setArrt(String art) {
+            arrt.setText("남은시간 : " + art + "분");
         }
 
         public void setStatcnt(int stacnt) {
@@ -305,5 +324,8 @@ public class BusInfoActivity extends AppCompatActivity {
 
     }
 
+    public void onBackPressed(){
+        super.onBackPressed();
+    }
 
 }

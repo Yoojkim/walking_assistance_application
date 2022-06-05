@@ -80,8 +80,7 @@ public class BusActivity extends AppCompatActivity {
                     .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
-                            startActivity(intent);
+                           onBackPressed();
                         }
                     });
             msgDlg = msg.create();
@@ -97,26 +96,25 @@ public class BusActivity extends AppCompatActivity {
             for (BusStop bs : busStops) {
                 Log.i("busStop", bs.getStr());
                 String[] info = bs.getStr().split(",");
-                if(info[0] == "0"){
+                if("0".equals(info[0])){
+                    Log.d("if문 확인","실행");
                     AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
                             .setTitle("현재 근처에 버스정류장이 없습니다.")
                             .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
-                                    startActivity(intent);
+                                    onBackPressed();
                                 }
                             });
                     msgDlg = msg.create();
                     msgDlg.show();
-                }else if(info[0] == "xss" || busStops == null){
+                }else if("xss".equals(info[0])|| busStops == null){
                     AlertDialog.Builder msg = new AlertDialog.Builder(BusActivity.this)
                             .setTitle("현재 네트워크가 불안정합니다. 잠시후 접속해주세요.")
                             .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
-                                    startActivity(intent);
+                                    onBackPressed();
                                 }
                             });
                     msgDlg = msg.create();
@@ -159,6 +157,9 @@ public class BusActivity extends AppCompatActivity {
 
     }
 
+    public void onBackPressed(){
+        super.onBackPressed();
+    }
 
     public List<BusStop> getBusstopinfo() {
         setLoc();
@@ -236,7 +237,8 @@ public class BusActivity extends AppCompatActivity {
             urlBuilder.append("&" + URLEncoder.encode("_type","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*데이터 타입(xml, json)*/
             urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode(Double.toString(latitude), "UTF-8"));
             urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode(Double.toString(longitude), "UTF-8"));
-
+//            urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode("36.7622684", "UTF-8"));
+//            urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode("127.2589355", "UTF-8"));
             URL url = new URL(urlBuilder.toString());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
