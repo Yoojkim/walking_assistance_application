@@ -57,7 +57,7 @@ import java.util.Locale;
 
 
 public class WalkingActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
-    final List<String> cocoNames = Arrays.asList("킥보드","자전거");
+    final List<String> cocoNames = Arrays.asList("자전거","킥보드");
 
     //timer 사용 final val
     private static final int MESSAGE_TIMER_START=100;
@@ -76,7 +76,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
     double focalLength;
     float sensor_height;
     int preview_height; //화면 높이
-
+    Rect boxMax;
     TimerHandler timerHandler=null;
 
     //objectDetection global val
@@ -184,7 +184,8 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
         //거리 측정
         double dist = 0;
         int realSize = 0;
-
+        int arr[] = cameraBridgeViewBase.getFrameSize();
+        
         if (objectName == "킥보드")
             realSize = 1310;
         else if (objectName == "자전거")
@@ -194,13 +195,27 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
         dist /= 10;
 
         int distance = (int) Math.round(dist);
-
+            
         //m 단위로 변경
         int meter = distance / 100;
         int cm = distance % 100;
 
 
-        String msg = "전방" + Integer.toString(meter) + "m" + Integer.toString(cm) + "cm에" + objectName + "가 있습니다";
+        int fWidth = arr[0];
+        Log.d("카메라", String.valueOf(arr[0])+String.valueOf(arr[1]));
+        double boxCenterX = (boxMax.tl().x + boxMax.br().x)/2;
+
+        String dir = null;
+
+        if(boxCenterX <= (fWidth * (1.0/3.0))){
+            dir = "왼쪽";
+        }else if(boxCenterX > fWidth * (2.0/3.0) && boxCenterX <= fWidth){
+            dir = "오른쪽";
+        }else{
+            dir = "정면";
+        }
+
+        String msg = dir + Integer.toString(meter) + "m" + Integer.toString(cm) + "cm에" + objectName + "가 있습니다";
         tts.speak(msg, TextToSpeech.QUEUE_FLUSH, null);
 
     }
@@ -291,7 +306,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
             // Draw result boxes:
             int[] ind = indices.toArray();
             int heightTemp=-1;
-            Rect boxMax=null;
+             boxMax=null;
             for (int i = 0; i < ind.length; ++i) {
 
                 int idx = ind[i];
@@ -303,6 +318,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
                     heightTemp=box.height;
                     boxMax=box;
                     objectName=cocoNames.get(idGuy);
+
                 }
                 object_height=heightTemp;
             }
@@ -323,7 +339,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
     public void onCameraViewStarted(int width, int height) {
 
         String tinyYoloCfg = getPath("yolov3-tiny_obj(walking).cfg",this);
-        String tinyYoloWeights = getPath("yolov3-tiny_obj_final(walking).weights",this);
+        String tinyYoloWeights = getPath("yolov3-tiny_obj(walking).weights",this);
 
         tinyYolo = Dnn.readNetFromDarknet(tinyYoloCfg, tinyYoloWeights);
     }
