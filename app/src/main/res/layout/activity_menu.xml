@@ -26,7 +26,6 @@
             android:clickable="true"
             android:fontFamily="@font/gmarketsanslight"
             android:gravity="center"
-            android:onClick="onTextViewClicked"
             android:text="튜토리얼 모드"
             android:textColor="@color/black"
             android:textSize="60dp" />
