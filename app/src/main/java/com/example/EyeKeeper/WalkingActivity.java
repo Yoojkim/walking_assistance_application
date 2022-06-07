@@ -1,7 +1,5 @@
 package com.example.EyeKeeper;
 
-import static android.os.SystemClock.sleep;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -11,7 +9,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
-import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -19,12 +16,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SizeF;
-import android.view.Display;
 import android.view.SurfaceView;
-import android.widget.Toast;
 
 
 import org.opencv.android.BaseLoaderCallback;
@@ -76,6 +70,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
     double focalLength;
     float sensor_height;
     int preview_height; //화면 높이
+    int frame_wid;
     Rect boxMax;
     TimerHandler timerHandler=null;
 
@@ -201,15 +196,13 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
         int cm = distance % 100;
 
 
-        int fWidth = arr[0];
-        Log.d("카메라", String.valueOf(arr[0])+String.valueOf(arr[1]));
         double boxCenterX = (boxMax.tl().x + boxMax.br().x)/2;
 
         String dir = null;
 
-        if(boxCenterX <= (fWidth * (1.0/3.0))){
+        if(boxCenterX <= (frame_wid * (1.0/3.0))){
             dir = "왼쪽";
-        }else if(boxCenterX > fWidth * (2.0/3.0) && boxCenterX <= fWidth){
+        }else if(boxCenterX > frame_wid * (2.0/3.0) && boxCenterX <= frame_wid){
             dir = "오른쪽";
         }else{
             dir = "정면";
@@ -223,6 +216,8 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat frame = inputFrame.rgba();
+        frame_wid = frame.width();
+        Log.d("프레임", String.valueOf(frame_wid));
         Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGB2BGR);
 
         if(firstTime){
@@ -247,6 +242,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
         List<String> outBlobNames = new java.util.ArrayList<>();
         outBlobNames.add(0, "yolo_16");
         outBlobNames.add(1, "yolo_23");
+
 
         tinyYolo.forward(result,outBlobNames);
 
@@ -339,7 +335,7 @@ public class WalkingActivity extends AppCompatActivity implements CameraBridgeVi
     public void onCameraViewStarted(int width, int height) {
 
         String tinyYoloCfg = getPath("yolov3-tiny_obj(walking).cfg",this);
-        String tinyYoloWeights = getPath("yolov3-tiny_obj(walking).weights",this);
+        String tinyYoloWeights = getPath("yolov3-tiny_obj_final(walking).weights",this);
 
         tinyYolo = Dnn.readNetFromDarknet(tinyYoloCfg, tinyYoloWeights);
     }
