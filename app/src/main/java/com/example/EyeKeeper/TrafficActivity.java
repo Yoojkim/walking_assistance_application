@@ -169,6 +169,7 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
                     trafficCount++; //기존 신호 변수 red,green은 유지 (잠시 프레임 아웃으로 감지되지 않을 수도 있음)
             }
         }
+
         //신호등 탐지 o
         //trafficFlag: true-green, false-red
         else {
@@ -220,6 +221,7 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
         List<String> outBlobNames = new java.util.ArrayList<>();
         outBlobNames.add(0, "yolo_16");
         outBlobNames.add(1, "yolo_23");
+        outBlobNames.add(2, "yolo_30");
 
         tinyYolo.forward(result,outBlobNames);
 
@@ -299,8 +301,8 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
     @Override
     public void onCameraViewStarted(int width, int height) {
 
-        String tinyYoloCfg = getPath("yolov3-tiny_obj.cfg",this);
-        String tinyYoloWeights = getPath("yolov3-tiny_obj_final.weights",this);
+        String tinyYoloCfg = getPath("yolov3-tiny_3l.cfg",this);
+        String tinyYoloWeights = getPath("yolov3-tiny_3l_final.weights",this);
 
         tinyYolo = Dnn.readNetFromDarknet(tinyYoloCfg, tinyYoloWeights);
     }
@@ -309,7 +311,6 @@ public class TrafficActivity extends AppCompatActivity implements CameraBridgeVi
     public void onCameraViewStopped() {
 
     }
-
 
     @Override
     protected void onResume() {
